@@ -58,16 +58,16 @@ function getFontSize(font, dpi) {
 		}
 		return fontSize
 	} else {
-		let fontSize = 20
+		let fontSize = 16
 		switch(font) {
 			case '2':
-				fontSize = 28
+				fontSize = 24
 				break
 			case '3':
-				fontSize = 36
+				fontSize = 30
 				break
 			case '4':
-				fontSize = 44
+				fontSize = 34
 				break
 		}
 		return fontSize
@@ -137,7 +137,7 @@ function drawRotatedText(context, left, top, text, font, rotate, hmul = 1, vmul 
 
 function convertEPL(epl) {
 	const output = []
-	const factor = 300 / 200
+	const factor = 300 / 203
 	const input = epl.split('\n')
 	for (const line of input) {
 		if (line.length) {
