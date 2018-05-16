@@ -1,0 +1,69 @@
+<html>
+
+<meta charset="UTF-8" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js" type="text/javascript" encoding="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.1/ace.js" type="text/javascript" encoding="utf-8"></script>
+<script src="bwipp.js" type="text/javascript" encoding="utf-8"></script>
+<script src="bwipjs.js" type="text/javascript" encoding="utf-8"></script>
+<script src="xhr_fonts.js" type="text/javascript" encoding="utf-8"></script>
+<script src="index.js" type="text/javascript" encoding="utf-8"></script>
+<script src="bitmap.js" type="text/javascript" encoding="utf-8"></script>
+<script src="epl.js" type="text/javascript" encoding="utf-8"></script>
+<style>
+	body {
+		background-color: silver;
+	}
+
+	div#control {
+		position: absolute;
+		top: 0px;
+		left: 20px;
+		right: 20px;
+	}
+
+	div#results {
+		position: absolute;
+		right: 20px;
+		padding: 8px;
+		bottom: 20px;
+		top: 80px;
+		left: 40%;
+	}
+
+	div.editorPanel {
+		position: absolute;
+		top: 80px;
+		left: 20px;
+		right: 60%;
+		bottom: 20px;
+	}
+
+	div.editor {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	div.result {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+<body onload="onLoad()">
+	<div id="control">
+		<select id="dotsPerInch">
+				<option value="203">203 dpi</option>
+				<option value="300">300 dpi</option>
+		</select>
+	</div>
+	<div class="editorPanel">
+		<div class="editor" id="editorEl"></div>
+	</div>
+	<div id="results">
+		<div id="result"></div>
+	</div>
+</body>
+
+</html>
