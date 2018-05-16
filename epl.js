@@ -1,27 +1,3 @@
-(function(){
-  var _fillText,
-    __slice = [].slice;
-
-  _fillText = CanvasRenderingContext2D.prototype.fillText;
-
-  CanvasRenderingContext2D.prototype.fillText = function() {
-    var args, offset, previousLetter, str, x, y,
-      _this = this;
-
-    str = arguments[0], x = arguments[1], y = arguments[2], args = 4 <= arguments.length ? __slice.call(arguments, 3) : [];
-    if (this.letterSpacing == null || this.letterSpacing === 0) {
-      return _fillText.apply(this, arguments);
-    }
-    offset = 0;
-		previousLetter = false;
-		for (const letter of str) {
-      _fillText.apply(_this, [letter, x + offset + _this.letterSpacing, y].concat(args));
-      offset += _this.measureText(letter).width + _this.letterSpacing;
-      previousLetter = letter;
-    }
-  };
-})();	
-
 function clearrect(context, left, top, width, height, color) {
 	const oldFill = context.fillStyle;
 	context.fillStyle = color;
@@ -29,23 +5,14 @@ function clearrect(context, left, top, width, height, color) {
 	context.fillStyle = oldFill;
 }
 
-function line(context, x1, y1, x2, y2) {
-	context.beginPath();
-	context.moveTo(x1 || 0, y1 || 0);
-	context.lineTo(x2 || 0, y2 || 0);
-	context.stroke();
-	context.closePath();
-}
-
 function rect(context, x, y, width, height) {
-	console.log(`rect: x: ${x}, y: ${y}, w: ${width}, h: ${height}`)
 	context.fillRect(x, y, width, height)
 }
 
 function getFontSize(font, dpi) {
 	if (dpi === 203) {
 		let fontSize = 12
-		switch(font) {
+		switch (font) {
 			case '2':
 				fontSize = 16
 				break
@@ -59,7 +26,7 @@ function getFontSize(font, dpi) {
 		return fontSize
 	} else {
 		let fontSize = 16
-		switch(font) {
+		switch (font) {
 			case '2':
 				fontSize = 24
 				break
@@ -76,7 +43,7 @@ function getFontSize(font, dpi) {
 
 function getRotate(rotate) {
 	let rotation = 0
-	switch(rotate) {
+	switch (rotate) {
 		case 1:
 			rotation = 90
 			break
@@ -90,9 +57,13 @@ function getRotate(rotate) {
 	return rotation
 }
 
+function createCanvas() {
+	return document.createElement('canvas')
+}
+
 function barcode(context, text, left, top, rotate, type, nwidth, wwidth, height) {
 	const bw = new BWIPJS(bwipjs_fonts, true)
-	const canvas = document.createElement('canvas')
+	const canvas = createCanvas()
 	canvas.height = 1
 	canvas.width = 1
 	canvas.style.visibility = 'hidden'
@@ -106,7 +77,6 @@ function barcode(context, text, left, top, rotate, type, nwidth, wwidth, height)
 
 function drawText(context, left, top, text, font, hmul = 1, vmul = 1, dpi = 203) {
 	const fontSize = getFontSize(font, dpi)
-	console.log(`text: x: ${left}, y: ${top}, text: ${text}, f: ${font}, hmul: ${hmul}, vmul: ${vmul}`)
 	context.save();
 	context.font = `${fontSize}px monospace`
 	let bottom = top + fontSize
@@ -118,7 +88,6 @@ function drawText(context, left, top, text, font, hmul = 1, vmul = 1, dpi = 203)
 		bottom = Math.floor(bottom / vmul) + (fontSize / 2)
 	}
 	context.fillText(text, left, bottom)
-	console.log(`text: ${text}, left: ${left}, bottom: ${bottom}`)
 	context.setTransform(1, 0, 0, 1, 0, 0)
 	context.restore();
 }
@@ -129,104 +98,71 @@ function drawRotatedText(context, left, top, text, font, rotate, hmul = 1, vmul 
 	context.font = `${fontSize}px monospace`
 	context.translate(left - fontSize, top)
 	const rotation = getRotate(rotate)
-	context.rotate(rotation * Math.PI / 180 )
+	context.rotate(rotation * Math.PI / 180)
 	context.scale(hmul, vmul);
 	context.fillText(text, 0, 0)
 	context.restore()
 }
 
-function convertEPL(epl) {
-	const output = []
-	const factor = 300 / 203
-	const input = epl.split('\n')
-	for (const line of input) {
-		if (line.length) {
-			const command = line[0]
-			if (command === 'Q') {
-				const params = line.slice(1).split(',')
-				const height = parseInt(params[0], 10)
-				const offset = parseInt(params[1], 10)
-				const h = Math.ceil(height * factor)
-				const off = Math.ceil(offset * factor)
-				output.push(`Q${h.toString().padStart('0', 3)},${off.toString().padStart('0', 3)}`)
-			} else if (command === 'A') {
-				const params = line.slice(1).split(',')
-				const left = parseInt(params[0], 10)
-				const top = parseInt(params[1], 10)
-				const l = Math.ceil(left * factor)
-				const t = Math.ceil(top * factor)
-				output.push(`A${l.toString().padStart('0', 3)},${t.toString().padStart('0', 3)},${params.slice(2).join(',')}`)
-			} else if (command === 'B') {
-				const params = line.slice(1).split(',')
-				const left = parseInt(params[0], 10)
-				const top = parseInt(params[1], 10)
-				const height = parseInt(params[6], 10)
-				const l = Math.ceil(left * factor)
-				const t = Math.ceil(top * factor)
-				const h = Math.ceil(height * factor)
-				output.push(`B${l.toString().padStart('0', 3)},${t.toString().padStart('0', 3)},${params.slice(2, 6).join(',')},${h.toString().padStart('0', 3)},${params.slice(7).join(',')}`)
-			} else if (command === 'L') {
-				const c2 = line[1]
-				const params = line.slice(2).split(',')
-				const left = parseInt(params[0], 10)
-				const top = parseInt(params[1], 10)
-				const width = parseInt(params[2], 10)
-				const height = parseInt(params[3], 10)
-				const l = Math.ceil(left * factor)
-				const t = Math.ceil(top * factor)
-				const w = Math.ceil(width * factor)
-				const h = Math.ceil(height * factor)
-				output.push(`L${c2}${l.toString().padStart('0', 3)},${t.toString().padStart('0', 3)},${w.toString().padStart('0', 3)},${h.toString().padStart('0', 3)}`)
-			} else {
-				output.push(line)
-			}
-		}
-	}
-	return output.join('\n')
-}
-
-function renderEPL(container, epl) {
-	const dpi = parseInt(dotsPerInch.value, 10)
-	if (dpi === 300) {
-		epl = convertEPL(epl)
-	}
+function renderEPL(container, epl, dpi, labelStock) {
+	const factor = dpi / 203
 	const input = epl.split('\n')
 	container.innerHTML = ''
-	const canvas = document.createElement('canvas')
+	const canvas = createCanvas()
 	canvas.style.letterSpacing = '8px';
 	const context = canvas.getContext('2d')
 	context.letterSpacing = 1
 	let shiftLeft = 0
 	let shiftTop = 0
+	let printFromBottom = false
+	let labelHeight = 0
+	let contentHeight = 0
 	for (const line of input) {
-		if (line.length) {
+		if (line && line.trim().length) {
 			const command = line[0]
 			if (command === 'R') {
 				const params = line.slice(1).split(',')
 				shiftLeft = parseInt(params[0], 10)
 				shiftTop = parseInt(params[1], 10)
 			}
+			else if (command === 'Z') {
+				printFrom = line[1]
+				if (labelHeight > contentHeight && printFrom === 'B') {
+					context.translate(0, labelHeight - contentHeight)
+				}
+			}
 			else if (command === 'Q') {
 				const params = line.slice(1).split(',')
-				const height = parseInt(params[0], 10)
+				contentHeight = parseInt(params[0], 10)
+				contentHeight = Math.ceil(contentHeight * factor)
 				const gap = parseInt(params[1], 10)
 				let offset
 				if (params.length > 2) {
 					offset = parseInt(params[2], 10)
 				}
-				const width = height
+				let width = 4 * dpi
+				let height = width
+				if (labelStock === '4x6') {
+					width = 4 * dpi
+					height = 6 * dpi
+				} else if (labelStock === '4x4') {
+					width = 4 * dpi
+					height = 4 * dpi
+				}
 				canvas.setAttribute('height', height)
 				canvas.setAttribute('width', width)
 				clearrect(context, 0, 0, width, height, 'white');
+				labelHeight = height
 			} else if (command === 'A') {
 				const params = line.slice(1).split(',')
-				const left = parseInt(params[0], 10) + shiftLeft
-				const top = parseInt(params[1], 10) + shiftTop
+				let left = parseInt(params[0], 10) + shiftLeft
+				let top = parseInt(params[1], 10) + shiftTop
+				left = Math.ceil(left * factor)
+				top = Math.ceil(top * factor)
 				const rotate = parseInt(params[2], 10)
 				const font = params[3]
 				const hmul = parseInt(params[4], 10)
 				const vmul = parseInt(params[5], 10)
-				const reverse = params[6]
 				const text = params[7].slice(1, params[7].length - 1).replace(/"/g, '')
 				if (rotate > 0) {
 					drawRotatedText(context, left, top, text, font, rotate, hmul, vmul, dpi)
@@ -235,25 +171,31 @@ function renderEPL(container, epl) {
 				}
 			} else if (command === 'B') {
 				const params = line.slice(1).split(',')
-				const left = parseInt(params[0], 10) + shiftLeft
-				const top = parseInt(params[1], 10)
+				let left = parseInt(params[0], 10) + shiftLeft
+				let top = parseInt(params[1], 10)
 				const rotate = parseInt(params[2], 10)
 				const type = parseInt(params[3], 10)
-				const nwidth = parseInt(params[4], 10)
-				const wwidth = parseInt(params[5], 10)
-				const height = parseInt(params[6], 10)
+				let nwidth = parseInt(params[4], 10)
+				let wwidth = parseInt(params[5], 10)
+				let height = parseInt(params[6], 10)
+				left = Math.ceil(left * factor)
+				top = Math.ceil(top * factor)
+				height = Math.ceil(height * factor)
+				nwidth = Math.ceil(nwidth * factor)
+				wwidth = Math.ceil(wwidth * factor)
 				const text = params[8].slice(1, params[8].length - 1).replace(/"/g, '')
 				barcode(context, text, left, top, rotate, type, nwidth, wwidth, height)
 			} else if (command === 'L') {
-				const c2 = line[1]
 				const params = line.slice(2).split(',')
-				const left = parseInt(params[0], 10) + shiftLeft
-				const top = parseInt(params[1], 10) + shiftTop
-				const width = parseInt(params[2], 10)
-				const height = parseInt(params[3], 10)
+				let left = parseInt(params[0], 10) + shiftLeft
+				let top = parseInt(params[1], 10) + shiftTop
+				let width = parseInt(params[2], 10)
+				let height = parseInt(params[3], 10)
+				left = Math.ceil(left * factor)
+				top = Math.ceil(top * factor)
+				height = Math.ceil(height * factor)
+				width = Math.ceil(width * factor)
 				rect(context, left, top, width, height)
-			} else {
-
 			}
 		}
 	}
