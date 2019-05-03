@@ -1,0 +1,15 @@
+	m/min	width(cm)
+T200	152	55.8
+T300	305	76.2
+T400	305	106.7
+		
+		
+		
+106	cm	
+30000	cm	per min
+500	cm	per sec
+		
+		
+		
+15.2	cm	page width
+22.9	cm	page height
